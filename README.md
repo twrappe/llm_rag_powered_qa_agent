@@ -185,106 +185,398 @@ class LogEntry:
 - Decorates remediation suggestions with priorities
 - Converts results to JSON, Markdown, etc.
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Python 3.10+
-- OpenAI API key
-- pip or poetry for package management
+- **Python 3.10 or higher** - [Download here](https://www.python.org/downloads/)
+- **OpenAI API key** - [Get one free here](https://platform.openai.com/account/api-keys)
+- **Git** - For cloning the repository
+- **Any OS**: Windows, macOS, or Linux
 
-### Installation
+### Step 1: Get Your OpenAI API Key
 
-```bash
-# 1. Clone the repository
+1. Visit [OpenAI API Keys](https://platform.openai.com/account/api-keys)
+2. Sign up or log in (credit card required for paid usage)
+3. Click **"Create new secret key"**
+4. Copy the key (it will only be shown once)
+5. Store it safely - you'll need it in Step 4
+
+### Step 2: Clone & Setup Project
+
+#### Windows (PowerShell)
+```powershell
+# Clone the repository
 git clone https://github.com/yourusername/llm_rag_powered_qa_agent.git
 cd llm_rag_powered_qa_agent
 
-# 2. Create virtual environment
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 3. Install dependencies
+# Activate virtual environment
+venv\Scripts\Activate.ps1
+
+# Install dependencies
 pip install -r requirements.txt
+```
 
-# 4. Configure environment
-cp .env.example .env
-# Edit .env with your OpenAI API key
+#### macOS/Linux (Bash)
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/llm_rag_powered_qa_agent.git
+cd llm_rag_powered_qa_agent
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 3: Configure Environment
+
+#### Option A: Create `.env` File (Recommended)
+
+Create a `.env` file in the project root:
+
+```bash
+# .env file
+OPENAI_API_KEY=sk-YOUR_API_KEY_HERE
+
+# Optional: Customize settings (defaults shown)
+LLM_MODEL=gpt-4-turbo
+TEMPERATURE=0.7
+CHROMA_DB_PATH=./chroma_db
+LOG_LEVEL=INFO
+```
+
+#### Option B: Set Environment Variables
+
+**Windows (PowerShell)**:
+```powershell
+$env:OPENAI_API_KEY = "sk-YOUR_API_KEY_HERE"
+```
+
+**macOS/Linux (Bash)**:
+```bash
+export OPENAI_API_KEY="sk-YOUR_API_KEY_HERE"
+```
+
+### Step 4: Ingest Documentation (First Time Only)
+
+The system needs documentation to provide context-aware analysis. Prepare your docs first:
+
+```powershell
+# Windows
+python examples/ingest_docs.py
+
+# macOS/Linux
+python examples/ingest_docs.py
+```
+
+This ingests the sample documentation from `data/documentation/`. For **custom documentation**:
+
+1. Add Markdown files to `data/documentation/`
+2. Run the ingestion script again
+3. Files are automatically parsed and added to ChromaDB
+
+### Step 5: Verify Installation
+
+```powershell
+# Run the test suite
+.\run-tests.ps1
+
+# Should see: [PASS] All tests passed!
 ```
 
 ### Basic Usage
 
+**Minimal Example:**
 ```python
 from src.agents import CIDDQAAgent
-from src.rag import RAGPipeline
 
-# Initialize the agent
-rag_pipeline = RAGPipeline()
+# Initialize (automatically loads ChromaDB docs)
+agent = CIDDQAAgent()
 
-# Ingest your documentation
-rag_pipeline.ingest_documentation([
-    "docs/connection_pool_guide.md",
-    "docs/test_failure_guide.md"
-])
-
-# Create agent and analyze
-agent = CIDDQAAgent(rag_pipeline)
-
-# Load failure logs
+# Read your CI/CD failure logs
 with open("failure.log", "r") as f:
     log_content = f.read()
 
-# Run analysis
+# Analyze
 result = agent.analyze_and_remediate(log_content)
 
-# Results contain:
-# - result['rca']: Root Cause Analysis details
-# - result['remediation_suggestions']: List of fixes
-# - result['rag_stats']: RAG system statistics
+# Access results
+print(f"Root Causes: {result['rca']['root_causes']}")
+print(f"Severity: {result['rca']['severity']}")
+for suggestion in result['remediation_suggestions']:
+    print(f"- {suggestion['action']}")
 ```
 
-## 📖 Usage Examples
-
-### Example 1: Analyze a CI/CD Failure
-
-```bash
-# Run the example analysis script
-python examples/analyze_failure.py
-```
-
-### Example 2: Ingest Custom Documentation
-
-```bash
-# Prepare your documentation files (Markdown format)
-mkdir data/documentation
-cp my_docs/*.md data/documentation/
-
-# Run the ingestion script
-python examples/ingest_docs.py
-```
-
-### Example 3: Programmatic Integration
-
+**Complete Example:**
 ```python
 import json
 from src.agents import CIDDQAAgent
 from src.rag import RAGPipeline
 
-def analyze_pipeline_failure(log_content: str):
-    # Setup
-    rag = RAGPipeline()
-    agent = CIDDQAAgent(rag)
-    
-    # Analyze
-    result = agent.analyze_and_remediate(log_content)
-    
-    # Export results
-    return json.dumps(result, indent=2, default=str)
+# Initialize with custom RAG pipeline
+rag_pipeline = RAGPipeline()
 
-# Usage
-with open("pipeline.log") as f:
-    analysis = analyze_pipeline_failure(f.read())
-    print(analysis)
+# Ingest additional documentation
+rag_pipeline.ingest_documentation([
+    "data/documentation/my_guide.md"
+])
+
+# Create agent with the RAG pipeline
+agent = CIDDQAAgent(rag_pipeline)
+
+# Load and analyze logs
+with open("failure.log", "r") as f:
+    log_content = f.read()
+
+# Run analysis
+result = agent.analyze_and_remediate(log_content, query="Database timeout")
+
+# Pretty print results
+print(json.dumps(result, indent=2, default=str))
+```
+
+## 📖 Running Examples
+
+### Example 1: Analyze a CI/CD Failure
+
+```bash
+# Method 1: Run the provided example
+python examples/analyze_failure.py
+
+# Method 2: Use the test logs directly
+```
+
+### Example 2: Ingest Custom Documentation
+
+```powershell
+# 1. Add your documentation files
+Copy-Item "my_docs/*.md" -Destination "data/documentation/"
+
+# 2. Ingest them
+python examples/ingest_docs.py
+
+# 3. Verify ingestion
+# Check data/logs/ for ingestion logs
+```
+
+### Example 3: Use the FastAPI Server
+
+```powershell
+# Start the API server
+python examples/api_server.py
+
+# The server will start on http://localhost:8000
+# API docs: http://localhost:8000/docs
+
+# Test the API with curl (Windows PowerShell)
+$logContent = Get-Content "failure.log" -Raw
+$body = @{
+    log_content = $logContent
+    query = "database timeout"
+} | ConvertTo-Json
+
+Invoke-WebRequest -Uri "http://localhost:8000/analyze" `
+    -Method POST `
+    -Headers @{"Content-Type"="application/json"} `
+    -Body $body
+```
+
+### Example 4: Batch Analysis
+
+```python
+# Analyze multiple failure logs
+from pathlib import Path
+from src.agents import CIDDQAAgent
+
+agent = CIDDQAAgent()
+results = {}
+
+for log_file in Path("data/logs").glob("*.log"):
+    with open(log_file) as f:
+        analysis = agent.analyze_and_remediate(f.read())
+        results[log_file.name] = analysis
+
+# Export results
+import json
+with open("batch_analysis_results.json", "w") as f:
+    json.dump(results, f, indent=2, default=str)
+```
+
+## 🐳 Docker Deployment
+
+### Option A: Desktop Testing
+
+```bash
+# Build the image
+docker build -t rag-qa-agent .
+
+# Run with environment variable
+docker run -e OPENAI_API_KEY="sk-..." rag-qa-agent
+
+# Or with .env file
+docker run --env-file .env rag-qa-agent
+```
+
+### Option B: Production Deployment (docker-compose)
+
+```bash
+# Start the service
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
+```
+
+**docker-compose.yml** includes:
+- Main Python service with RAG + agents
+- Persistent ChromaDB volume
+- Environment variable configuration
+- Health checks
+
+## ⚙️ Configuration Reference
+
+### Environment Variables
+
+Create a `.env` file or set these in your shell:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | *(required)* | Your OpenAI API key (sk-...) |
+| `LLM_MODEL` | `gpt-4-turbo` | Which GPT model to use |
+| `TEMPERATURE` | `0.7` | LLM creativity (0=precise, 1=creative) |
+| `MAX_TOKENS` | `2000` | Max response length |
+| `CHROMA_DB_PATH` | `./chroma_db` | Where to store vector DB |
+| `CHROMA_COLLECTION_NAME` | `ci_cd_docs` | Vector DB collection name |
+| `CHUNK_SIZE` | `1000` | Document chunk size |
+| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
+| `TOP_K_RETRIEVAL` | `3` | Docs to retrieve per query |
+| `LOG_LEVEL` | `INFO` | Logging verbosity |
+
+### Performance Tuning
+
+**For Faster Analysis:**
+```bash
+CHUNK_SIZE=2000          # Fewer but larger chunks
+TOP_K_RETRIEVAL=1        # Retrieve fewer docs
+TEMPERATURE=0.3          # More deterministic
+```
+
+**For Better Context:**
+```bash
+CHUNK_SIZE=500           # More smaller chunks
+TOP_K_RETRIEVAL=5        # Retrieve more docs
+TEMPERATURE=0.9          # More creative analysis
+```
+
+## 🛠️ Troubleshooting
+
+### Issue: "OPENAI_API_KEY not found"
+
+**Solution:**
+```powershell
+# Verify the key is set
+$env:OPENAI_API_KEY
+
+# If empty, set it
+$env:OPENAI_API_KEY = "sk-..."
+
+# For permanent setup, edit or create .env file
+# OPENAI_API_KEY=sk-...
+```
+
+### Issue: "ModuleNotFoundError: No module named 'langchain'"
+
+**Solution:**
+```powershell
+# Ensure virtual environment is activated
+venv\Scripts\Activate.ps1
+
+# Reinstall dependencies
+pip install --upgrade -r requirements.txt
+```
+
+### Issue: "ChromaDB collection is empty"
+
+**Solution:**
+```powershell
+# Ingest the documentation first
+python examples/ingest_docs.py
+
+# Verify documents were added
+python -c "from src.rag import RAGPipeline; print(RAGPipeline().get_stats())"
+```
+
+### Issue: "OPENAI_API_KEY invalid or expired"
+
+**Solution:**
+1. Check your API key is correct: Copy-paste from [OpenAI dashboard](https://platform.openai.com/account/api-keys)
+2. Verify key has billing enabled (free trial may have expired)
+3. Check usage limits: https://platform.openai.com/account/billing/usage
+4. Generate a new key if needed
+
+### Issue: "Connection took too long" or "Timeout"
+
+**Solution:**
+```bash
+# Likely hitting OpenAI rate limits or network issues
+# Try again after a few seconds, or reduce request frequency
+```
+
+### Issue: "Vector database corrupted or out of space"
+
+**Solution:**
+```powershell
+# Delete and recreate ChromaDB
+Remove-Item -Recurse -Force chroma_db/
+
+# Re-ingest documentation
+python examples/ingest_docs.py
+```
+
+## 📊 Monitoring & Debugging
+
+### Enable Verbose Logging
+
+```powershell
+# Set environment variable
+$env:LOG_LEVEL = "DEBUG"
+
+# Run your analysis - you'll see detailed logs
+```
+
+### Check RAG System Health
+
+```python
+from src.rag import RAGPipeline
+
+rag = RAGPipeline()
+stats = rag.get_stats()
+
+print(f"Database: {stats['collection_name']}")
+print(f"Documents: {stats['document_count']}")
+print(f"Ready: {stats['document_count'] > 0}")
+```
+
+### View ChromaDB Contents
+
+```python
+from src.rag import ChromaDBManager
+
+db = ChromaDBManager()
+# Query to see what's stored
+results = db.query("database connection")
+print(f"Found {len(results['documents'][0])} matching docs")
 ```
 
 ## 🧠 AI Tools & Models
@@ -310,50 +602,159 @@ with open("pipeline.log") as f:
 - **Purpose**: Persistent storage and retrieval of document embeddings
 - **Features**: Built-in embedding, fast similarity search, metadata filtering
 
-## 💾 Infrastructure & Deployment
+## 💾 Infrastructure & Storage
 
-### Database
+### Vector Database (ChromaDB)
 
-**ChromaDB Configuration**:
-- **Type**: Vector Database
-- **Storage**: Persistent (file-based by default)
-- **Location**: `./chroma_db` directory
-- **Collection**: `ci_cd_docs` (configurable)
-- **Scaling**: Suitable for up to 100K documents
+**Default Setup (Local Development):**
+- **Type**: Vector Database with file-based persistence
+- **Location**: `./chroma_db/` directory
+- **Capacity**: Up to 100K documents
+- **No setup required**: Automatically created on first use
 
-### Optional: Production Deployment
-
+**Production Setup (Elastic Search):**
+Example Elasticsearch configuration:
 ```yaml
-# Using Docker
-FROM python:3.10-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["python", "examples/analyze_failure.py"]
-
-# Using FastAPI (optional API wrapper)
-# See examples/api_server.py for REST API implementation
+# docker-compose.yml addition
+elasticsearch:
+  image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+  environment:
+    discovery.type: single-node
+  ports:
+    - "9200:9200"
 ```
 
-### Environment Configuration
+### Storage Recommendations
 
-Create `.env` file with:
+| Use Case | Storage | Size | Durability |
+|----------|---------|------|-----------|
+| **Development** | Local disk | < 1GB | Backup monthly |
+| **Staging** | Cloud storage (S3) | 1-10GB | Daily snapshots |
+| **Production** | Managed DB (Atlas) | 10GB+ | Real-time replication |
+
+### Backup Strategy
+
+```powershell
+# Backup ChromaDB
+Copy-Item -Recurse "chroma_db" "chroma_db_backup_$(Get-Date -Format 'yyyyMMdd')"
+
+# Or use docker volumes for automatic backups
+# docker run -v chroma_db_volume:/app/chroma_db ...
+```
+
+## 🚀 Deployment Options
+
+### Option 1: Standalone Python Script (Simplest)
+
+**For**: Small teams, one-off analysis, testing
+
+```powershell
+# Requirements
+python requirements.txt
+OPENAI_API_KEY set
+
+# Run
+python examples/analyze_failure.py
+```
+
+### Option 2: FastAPI Server (Recommended)
+
+**For**: Team access, integration with monitoring, REST API
+
+```powershell
+# Start server
+python examples/api_server.py
+
+# Access at http://localhost:8000
+# API docs at http://localhost:8000/docs
+```
+
+### Option 3: Docker Container
+
+**For**: Consistent environments, cloud deployment
 
 ```bash
-# LLM Configuration
-OPENAI_API_KEY=sk-...
-LLM_MODEL=gpt-4-turbo
-TEMPERATURE=0.7
+# Build
+docker build -t ci-cd-analyzer .
 
-# RAG Configuration
-CHROMA_DB_PATH=./chroma_db
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-TOP_K_RETRIEVAL=3
+# Run
+docker run -e OPENAI_API_KEY="sk-..." ci-cd-analyzer
+```
 
-# Logging
-LOG_LEVEL=INFO
+### Option 4: Kubernetes/Cloud (Enterprise)
+
+**For**: Large scale, high availability
+
+```yaml
+# Example: Google Cloud Run
+apiVersion: run.cnpg.io/v1alpha1
+kind: Run
+metadata:
+  name: rag-qa-agent
+spec:
+  image: gcr.io/myproject/rag-qa-agent:latest
+  environmentSecrets:
+    - OPENAI_API_KEY  # Use Cloud Secret Manager
+  memory: 1Gi
+  cpu: 2
+```
+
+## 📈 Performance & Optimization
+
+### Typical Performance Metrics
+
+| Operation | Time | Notes |
+|-----------|------|-------|
+| First-time setup | 2 min | Includes ChromaDB init |
+| Document ingestion | 5-15s per file | Depends on file size |
+| Single log analysis | 8-15s | Including LLM response |
+| RAG query | 100-300ms | Vector similarity search |
+| LLM inference | 3-10s | OpenAI API latency |
+
+### Optimization Tips
+
+**Speed Up Document Retrieval:**
+```bash
+TOP_K_RETRIEVAL=1        # Return fewer docs (faster but less context)
+CHUNK_SIZE=2000          # Larger chunks (fewer to process)
+```
+
+**Improve Analysis Quality:**
+```bash
+TOP_K_RETRIEVAL=5        # Return more docs (better context)
+CHUNK_SIZE=500           # Smaller chunks (more precise)
+TEMPERATURE=0.5          # More deterministic
+```
+
+**Reduce OpenAI Costs:**
+```bash
+LLM_MODEL=gpt-3.5-turbo  # Cheaper alternative (may be less accurate)
+MAX_TOKENS=1000          # Limit response length
+```
+
+### Caching Strategy
+
+```python
+# Cache results for similar failures
+import json
+from pathlib import Path
+
+cache_dir = Path("analysis_cache")
+cache_dir.mkdir(exist_ok=True)
+
+def get_analysis_cached(log_hash: str, log_content: str):
+    cache_file = cache_dir / f"{log_hash}.json"
+    
+    if cache_file.exists():
+        return json.load(open(cache_file))
+    
+    # Run analysis if not cached
+    agent = CIDDQAAgent()
+    result = agent.analyze_and_remediate(log_content)
+    
+    # Store for future use
+    cache_file.write_text(json.dumps(result, default=str))
+    return result
 ```
 
 ## 📋 Project Structure

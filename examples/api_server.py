@@ -2,6 +2,12 @@
 FastAPI server for CI/CD QA Agent (Optional)
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -12,7 +18,10 @@ from src.config import settings
 app = FastAPI(
     title="CI/CD Failure Analysis API",
     description="API for analyzing CI/CD failures with LLM-powered RCA",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url=None,
+    openapi_url="/openapi.json"
 )
 
 # Initialize agent
@@ -72,8 +81,13 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
+    print(f"🚀 Starting CI/CD Failure Analysis API...")
+    print(f"📍 Server: http://{settings.api_host}:{settings.api_port}")
+    print(f"📚 Interactive Docs: http://{settings.api_host}:{settings.api_port}/docs")
+    
     uvicorn.run(
         app,
         host=settings.api_host,
-        port=settings.api_port
+        port=settings.api_port,
+        log_level="info"
     )
