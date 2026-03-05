@@ -247,7 +247,7 @@ Create a `.env` file in the project root:
 OPENAI_API_KEY=sk-YOUR_API_KEY_HERE
 
 # Optional: Customize settings (defaults shown)
-LLM_MODEL=gpt-4-turbo
+LLM_MODEL=gpt-3.5-turbo
 TEMPERATURE=0.7
 CHROMA_DB_PATH=./chroma_db
 LOG_LEVEL=INFO
@@ -453,7 +453,7 @@ Create a `.env` file or set these in your shell:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENAI_API_KEY` | *(required)* | Your OpenAI API key (sk-...) |
-| `LLM_MODEL` | `gpt-4-turbo` | Which GPT model to use |
+| `LLM_MODEL` | `gpt-3.5-turbo` | Which GPT model to use |
 | `TEMPERATURE` | `0.7` | LLM creativity (0=precise, 1=creative) |
 | `MAX_TOKENS` | `2000` | Max response length |
 | `CHROMA_DB_PATH` | `./chroma_db` | Where to store vector DB |

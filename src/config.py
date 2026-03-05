@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     
     # OpenAI Configuration
     openai_api_key: str = Field(default="", validation_alias="OPENAI_API_KEY")
-    llm_model: str = Field(default="gpt-4-turbo", validation_alias="LLM_MODEL")
+    llm_model: str = Field(default="gpt-3.5-turbo", validation_alias="LLM_MODEL")
     temperature: float = Field(default=0.7, validation_alias="TEMPERATURE")
     max_tokens: int = Field(default=2000, validation_alias="MAX_TOKENS")
     
