@@ -2,7 +2,7 @@
 
 > **Intelligent Root Cause Analysis & Remediation for Silicon Validation & CI/CD Pipelines — At Scale**
 
-A multi-step LangChain agent designed for high-throughput hardware and software test infrastructure. It ingests failure logs from distributed test nodes—including silicon farm workers—performs automated Root Cause Analysis (RCA) via LLM reasoning, and surfaces structured remediation suggestions to dramatically reduce time-to-diagnosis when failures arrive at hundreds-per-day volumes.
+PRISM cuts root cause analysis time from hours to seconds across distributed silicon validation and CI/CD infrastructure — processing 100–500+ concurrent failures per day through an LLM-powered multi-agent system that correlates failures, retrieves contextual documentation, and delivers prioritized remediations with confidence scores.
 
 ## 🎯 Project Overview
 
@@ -429,6 +429,8 @@ python examples/batch_processor.py --dry-run
 Output is written to `farm_batch_results.json` and contains:
 - `per_node` — individual RCA + remediation per log file, sorted HIGH → LOW severity
 - `systemic_issues` — cross-node failure patterns grouped by silicon revision
+
+Sample output: [examples/example_rca_output.json](examples/example_rca_output.json)
 
 ### Example 2: Ingest Custom Documentation
 
@@ -1083,6 +1085,4 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
-**Made with ❤️ for DevOps & QA Teams**
-
-For questions or feedback, please open an issue or reach out!
+Built by [Thomas Wrappe](https://github.com/twrappe) · [LinkedIn](https://linkedin.com/in/thomas-wrappe)

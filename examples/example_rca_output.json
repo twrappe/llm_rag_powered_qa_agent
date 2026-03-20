@@ -1,0 +1,106 @@
+{
+  "batch_summary": {
+    "run_id": "run-20260318-1423",
+    "total_logs_processed": 12,
+    "processing_time_seconds": 47.3,
+    "systemic_issues_detected": 1,
+    "severity_breakdown": {
+      "HIGH": 3,
+      "MEDIUM": 6,
+      "LOW": 3
+    }
+  },
+  "per_node": [
+    {
+      "node_id": "farm-node-042",
+      "silicon_revision": "B0",
+      "test_platform": "H100-SXM5",
+      "driver_version": "550.54.14",
+      "test_suite": "memory_bandwidth",
+      "run_id": "run-20260318-1423",
+      "rca": {
+        "root_causes": [
+          "ECC scrubbing storm triggered under sustained memory bandwidth load",
+          "Driver 550.54.14 does not throttle ECC scrub rate on B0 stepping"
+        ],
+        "failure_chain": [
+          "memory_bandwidth test saturates HBM2e bus at 98% utilization",
+          "ECC background scrub competes for memory controller bandwidth",
+          "Scrub storm causes 340ms stall on memory controller arbitration",
+          "Test runner timeout (300ms) exceeded before result returned",
+          "Test marked FAILED: timeout waiting for device response"
+        ],
+        "affected_components": [
+          "hbm2e_memory_controller",
+          "ecc_scrub_engine",
+          "test_runner_timeout_config"
+        ],
+        "severity": "HIGH",
+        "impact": "8 of 12 nodes on B0/550.54.14 reproduce this failure",
+        "confidence_score": 0.94,
+        "summary": "ECC scrubbing storm on B0 stepping under sustained memory bandwidth load causes memory controller stalls that exceed test runner timeout thresholds. Reproduces consistently on driver 550.54.14 across all B0 nodes in this run.",
+        "errata_reference": "HW-ERRATA-2891"
+      },
+      "remediation_suggestions": [
+        {
+          "action": "Pin driver to 545.29.06 for all B0 stepping nodes",
+          "priority": "HIGH",
+          "estimated_fix_time": "20 minutes",
+          "risk_level": "LOW",
+          "success_probability": 0.91,
+          "steps": [
+            "Identify all farm nodes running silicon_revision=B0",
+            "Roll back driver from 550.54.14 to 545.29.06 on affected nodes",
+            "Verify driver version with: nvidia-smi --query-gpu=driver_version --format=csv",
+            "Re-run memory_bandwidth suite to confirm resolution",
+            "File regression ticket against 550.54.14 referencing HW-ERRATA-2891"
+          ],
+          "related_docs": [
+            "driver_release_notes_550.md",
+            "hw_errata_2891.md"
+          ]
+        },
+        {
+          "action": "Increase test runner timeout from 300ms to 800ms as temporary mitigation",
+          "priority": "MEDIUM",
+          "estimated_fix_time": "5 minutes",
+          "risk_level": "LOW",
+          "success_probability": 0.76,
+          "steps": [
+            "Update TEST_RUNNER_TIMEOUT_MS=800 in farm node environment config",
+            "Restart test runner service on affected nodes",
+            "Re-run memory_bandwidth suite to verify reduced failure rate"
+          ],
+          "related_docs": [
+            "test_runner_config_guide.md"
+          ]
+        }
+      ]
+    }
+  ],
+  "systemic_issues": [
+    {
+      "systemic_issue": true,
+      "affected_nodes": [
+        "farm-node-042",
+        "farm-node-043",
+        "farm-node-051",
+        "farm-node-055",
+        "farm-node-061",
+        "farm-node-062",
+        "farm-node-067",
+        "farm-node-071"
+      ],
+      "silicon_revision": "B0",
+      "driver_version": "550.54.14",
+      "test_suite": "memory_bandwidth",
+      "common_root_cause": "ECC scrubbing storm under sustained memory bandwidth load — known B0 stepping errata",
+      "affected_node_count": 8,
+      "total_nodes_in_run": 12,
+      "blast_radius": "67%",
+      "recommended_action": "Pin all B0 nodes to driver 545.29.06 pending errata fix in 551.x release",
+      "errata_reference": "HW-ERRATA-2891",
+      "confidence_score": 0.94
+    }
+  ]
+}
